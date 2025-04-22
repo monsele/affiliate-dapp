@@ -8,7 +8,11 @@ pub struct CreateNFTCampaign<'info> {
     #[account(
         init,
         payer = company,
-        space = 8 + 32 + 32 + 32 + (4 + name.len()) + 8 + 1 + (4 + campaign_details.len()) + 1 + 8 + 8
+        space = 8 + 32 + 32 + 32 + (4 + name.len()) + 8 + 1 + (4 + campaign_details.len()) + 1 + 8 + 8,
+        seeds = [b"nft_campaign", name.as_bytes()],
+        bump,
+        constraint = name.len() <= 32,
+        constraint = campaign_details.len() <= 200,
     )]
     pub campaign: Account<'info, NFTCampaign>,
     

@@ -183,6 +183,10 @@ pub struct ProcessAffiliateMint<'info> {
     /// CHECK: Only reading the address for payment
     #[account(mut, address = affiliate_link.influencer)]
     pub influencer: UncheckedAccount<'info>,
+
+    /// CHECK: Only reading the address for payment
+    #[account(mut, address = campaign.company)]
+    pub owner: UncheckedAccount<'info>,
     
     pub system_program: Program<'info, System>,
 }

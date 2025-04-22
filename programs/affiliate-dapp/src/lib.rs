@@ -21,8 +21,9 @@ pub mod affiliate_dapp {
     pub fn create_affiliate_link(
         ctx: Context<CreateAffiliateLink>,
         campaign_id: Pubkey,
+        campaign_name: String,
     ) -> Result<()> {
-        create_affiliate_link_instruction(ctx, campaign_id)
+        create_affiliate_link_instruction(ctx, campaign_id,campaign_name)
     }
     pub fn process_affiliate_mint(
         ctx: Context<ProcessAffiliateMint>,
