@@ -7,6 +7,7 @@ use instructions::*;
 declare_id!("57HuJeX7Qm7Vv1zYLP3WtYCAbEqMBEo5AD1d2jaEKNxK");
 
 #[program]
+
 pub mod affiliate_dapp {
     use super::*;
     pub fn create_nft_campaign(
@@ -27,9 +28,8 @@ pub mod affiliate_dapp {
     }
     pub fn process_affiliate_mint(
         ctx: Context<ProcessAffiliateMint>,
-        mint_instruction_data: Vec<u8>,
     ) -> Result<()> {
-        process_affiliate_mint_instruction(ctx, mint_instruction_data)
+        process_affiliate_mint_instruction(ctx)
     }
 
    

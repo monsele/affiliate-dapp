@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{instructions::campaign, state::*};
+use crate::state::*;
 
 #[derive(Accounts)]
 #[instruction(campaign_id: Pubkey, campaign_name: String)]

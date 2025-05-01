@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace,Debug)]
 pub struct NFTCampaign {
-    pub nft_project: Pubkey,          // Wallet of the NFT project
+    pub nft_mint: Pubkey,             // Mint account of the NFT project
     pub nft_mint_program: Pubkey,     // Program ID that handles minting
     pub company: Pubkey,              // Campaign creator
     #[max_len(32)]
@@ -16,6 +16,7 @@ pub struct NFTCampaign {
     pub active: bool,                 // Campaign status
     pub affiliates_count: u64,        // Number of affiliates
     pub total_mints: u64,             // Total NFTs minted via affiliates
+    pub created_at: i64,             // Timestamp of campaign creation
 }
 
 #[account]
@@ -25,4 +26,6 @@ pub struct AffiliateLink {
     pub influencer: Pubkey,      // Wallet of the influencer
     pub mints_count: u64,        // Number of mints through this link
     pub earnings: u64,           // Total earnings in lamports
+   // pub influencer_token_account: Pubkey, // Token account of the influencer
+    pub created_at: i64,         // Timestamp of link creation
 }
