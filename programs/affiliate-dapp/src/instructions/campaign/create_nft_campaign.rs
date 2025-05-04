@@ -2,7 +2,7 @@
 //use anchor_lang::prelude::*;
 use {
     anchor_lang::prelude::*,
-    anchor_spl::{ token_interface::{Mint, TokenAccount, TokenInterface,  spl_token_2022::ID as TOKEN_2022_PROGRAM_ID}}
+    anchor_spl::{ token::{transfer, Transfer}, token_interface::{spl_token_2022::ID as TOKEN_2022_PROGRAM_ID, Mint, TokenAccount, TokenInterface}}
 };
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_lang::solana_program::program_option::COption;
@@ -11,6 +11,9 @@ use crate::state::*;
 #[derive(Accounts)]
 #[instruction(name: String, mint_price: u64, commission_percentage: u8, campaign_details: String)]
 pub struct CreateNFTCampaign<'info> {
+
+    #[account(mut)]
+    pub company: Signer<'info>,
     #[account(
         init,
         payer = company,
@@ -25,13 +28,11 @@ pub struct CreateNFTCampaign<'info> {
     #[account(
         mut,
         constraint = nft_mint.mint_authority == COption::Some(company.key()),
-        owner = TOKEN_2022_PROGRAM_ID  // ← Critical for Token-2022
+        //owner = TOKEN_2022_PROGRAM_ID  // ← Critical for Token-2022
     )]
     pub nft_mint: InterfaceAccount<'info, Mint>,
     
-    // The program ID that handles minting for this NFT collection
-    /// CHECK: This account is not being read or written
-    pub nft_mint_program: UncheckedAccount<'info>,
+    
 
     #[account(
         mut,
@@ -39,24 +40,32 @@ pub struct CreateNFTCampaign<'info> {
         associated_token::authority = company,
         associated_token::token_program = token_program,
     )]
-    pub company_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub project_token_account: InterfaceAccount<'info, TokenAccount>,
+
     
-    #[account(mut)]
-    pub company: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"nft_escrow", nft_mint.key().as_ref(), company.key().as_ref()],
+        bump,
+        //owner = TOKEN_2022_PROGRAM_ID
+        
+    )]
+    pub nft_escrow: InterfaceAccount<'info, TokenAccount>,
+   
     #[account(address = TOKEN_2022_PROGRAM_ID)]
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 // // Event emitted when an NFT is listed
-// #[event]
-// pub struct ListingCreatedEvent {
-//     pub listing: Pubkey,
-//     pub seller: Pubkey,
-//     pub nft_mint: Pubkey,
-//     pub price: u64,
-//     pub created_at: i64,
-// }
+#[event]
+pub struct ListingCreatedEvent {
+    pub listing: Pubkey,
+    pub seller: Pubkey,
+    pub nft_mint: Pubkey,
+    pub price: u64,
+    pub created_at: i64,
+}
 
 // // Event emitted when an NFT is sold
 // #[event]
@@ -87,7 +96,6 @@ pub fn create_nft_campaign_instruction(
 ) -> Result<()> {
     let campaign = &mut ctx.accounts.campaign;
     campaign.nft_mint =ctx.accounts.nft_mint.key(); 
-    campaign.nft_mint_program = ctx.accounts.nft_mint_program.key();
     campaign.company = ctx.accounts.company.key();
     campaign.name = name;
     campaign.mint_price = mint_price;
@@ -97,12 +105,22 @@ pub fn create_nft_campaign_instruction(
     campaign.affiliates_count = 0;
     campaign.total_mints = 0;
     campaign.created_at = Clock::get()?.unix_timestamp;
-    // emit!(ListingCreatedEvent {
-    //     listing: campaign.key(),
-    //     seller: campaign.company.key(),
-    //     nft_mint:campaign.nft_mint.key(),
-    //     price: mint_price,
-    //     created_at: campaign.created_at,
-    // });
+
+    emit!(ListingCreatedEvent {
+        listing: campaign.key(),
+        seller: campaign.company.key(),
+        nft_mint:campaign.nft_mint.key(),
+        price: mint_price,
+        created_at: campaign.created_at,
+    });
+    //transfer the NFT to the escrow account
+    let transfer_instruction  = Transfer {
+        from: ctx.accounts.project_token_account.to_account_info().clone(),
+        to: ctx.accounts.nft_escrow.to_account_info().clone(),
+        authority: ctx.accounts.company.to_account_info().clone(),
+    };
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_ctx = CpiContext::new(cpi_program, transfer_instruction );
+    transfer(cpi_ctx, 1)?;
     Ok(())
 }

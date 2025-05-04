@@ -5,7 +5,6 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace,Debug)]
 pub struct NFTCampaign {
     pub nft_mint: Pubkey,             // Mint account of the NFT project
-    pub nft_mint_program: Pubkey,     // Program ID that handles minting
     pub company: Pubkey,              // Campaign creator
     #[max_len(32)]
     pub name: String,                 // Campaign name

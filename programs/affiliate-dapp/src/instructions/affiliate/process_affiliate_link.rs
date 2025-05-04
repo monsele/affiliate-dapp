@@ -34,14 +34,14 @@ pub struct ProcessAffiliateMint<'info> {
     #[account(mut)]
     /// CHECK: Validated in constraint
     pub owner: UncheckedAccount<'info>,
-    
+     /// CHECK: Validated in constraint
     #[account(mut)]
     pub influencer: AccountInfo<'info>,
     
     #[account(
         address = campaign.nft_mint,
         owner = TOKEN_2022_PROGRAM_ID,
-        constraint = nft_mint.mint_authority == COption::Some((marketplace_authority.key()))
+        constraint = nft_mint.mint_authority == COption::Some(marketplace_authority.key())
     )]
     pub nft_mint: InterfaceAccount<'info, Mint>,
     

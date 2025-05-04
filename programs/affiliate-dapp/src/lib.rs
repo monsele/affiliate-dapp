@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 mod state;
 mod instructions;
-use state::*;
 use instructions::*;
 //use instructions::{create_nft_campaign_instruction};
 declare_id!("57HuJeX7Qm7Vv1zYLP3WtYCAbEqMBEo5AD1d2jaEKNxK");
