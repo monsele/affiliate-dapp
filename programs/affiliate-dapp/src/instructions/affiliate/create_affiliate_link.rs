@@ -5,7 +5,7 @@ use crate::state::*;
 #[instruction(campaign_id: Pubkey, campaign_name: String)]
 pub struct CreateAffiliateLink<'info> {
     #[account(
-        init,
+        init_if_needed,
         payer = influencer,
         space = 8 + 32 + 32 + 8 + 8,
         seeds = [b"affiliate_link", influencer.key().as_ref(), campaign_name.as_bytes()],

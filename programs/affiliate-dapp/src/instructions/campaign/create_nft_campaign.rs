@@ -45,13 +45,20 @@ pub struct CreateNFTCampaign<'info> {
     
     #[account(
         mut,
-        seeds = [b"nft_escrow", nft_mint.key().as_ref(), company.key().as_ref()],
+        seeds = [b"nft_escrow",campaign.key().as_ref()],
         bump,
         //owner = TOKEN_2022_PROGRAM_ID
         
     )]
     pub nft_escrow: InterfaceAccount<'info, TokenAccount>,
    
+    #[account(
+        init_if_needed,
+        payer = company,
+        associated_token::mint = nft_mint,
+        associated_token::authority = nft_escrow, // Authority is the PDA!
+    )]
+    pub escrow_pda_nft_token_account: InterfaceAccount<'info, TokenAccount>,
     #[account(address = TOKEN_2022_PROGRAM_ID)]
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -116,7 +123,7 @@ pub fn create_nft_campaign_instruction(
     //transfer the NFT to the escrow account
     let transfer_instruction  = Transfer {
         from: ctx.accounts.project_token_account.to_account_info().clone(),
-        to: ctx.accounts.nft_escrow.to_account_info().clone(),
+        to: ctx.accounts.escrow_pda_nft_token_account.to_account_info().clone(),
         authority: ctx.accounts.company.to_account_info().clone(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();

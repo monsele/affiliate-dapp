@@ -125,25 +125,7 @@ pub fn process_affiliate_mint_instruction(
         ],
     )?;
 
-    // 3. Call the NFT project's mint instruction
-    // let accounts = ctx.remaining_accounts.iter().map(|acc| {
-    //     if acc.is_writable {
-    //         AccountMeta::new(acc.key(), acc.is_signer)
-    //     } else {
-    //         AccountMeta::new_readonly(acc.key(), acc.is_signer)
-    //     }
-    // }).collect();
 
-    // let nft_mint_ix = Instruction {
-    //     program_id: campaign.nft_mint_program,
-    //     accounts,
-    //     data: mint_instruction_data,
-    // };
-
-    // invoke(
-    //     &nft_mint_ix,
-    //     ctx.remaining_accounts,
-    // )?;
     // Get the seeds for signing as the marketplace authority
     let seeds = &[
         b"marketplace_authority".as_ref(),
