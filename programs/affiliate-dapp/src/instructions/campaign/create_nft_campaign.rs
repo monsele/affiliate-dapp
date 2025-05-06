@@ -7,7 +7,7 @@ use {
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_lang::solana_program::program_option::COption;
 use crate::state::*;
-// Get NFT Mint details and approve 
+
 #[derive(Accounts)]
 #[instruction(name: String, mint_price: u64, commission_percentage: u8, campaign_details: String)]
 pub struct CreateNFTCampaign<'info> {
@@ -23,12 +23,11 @@ pub struct CreateNFTCampaign<'info> {
         constraint = name.len() <= 32,
         constraint = campaign_details.len() <= 200,
     )]
-    pub campaign: Account<'info, NFTCampaign>,
+    pub campaign: Box<Account<'info, NFTCampaign>>,
     
     #[account(
         mut,
-        constraint = nft_mint.mint_authority == COption::Some(company.key()),
-        //owner = TOKEN_2022_PROGRAM_ID  // ← Critical for Token-2022
+        constraint = nft_mint.mint_authority == COption::Some(company.key())
     )]
     pub nft_mint: InterfaceAccount<'info, Mint>,
     
@@ -42,15 +41,14 @@ pub struct CreateNFTCampaign<'info> {
     )]
     pub project_token_account: InterfaceAccount<'info, TokenAccount>,
 
-    
+     ///CHECK: The PDA for the NFT escrow account
     #[account(
         mut,
         seeds = [b"nft_escrow",campaign.key().as_ref()],
         bump,
-        //owner = TOKEN_2022_PROGRAM_ID
         
     )]
-    pub nft_escrow: InterfaceAccount<'info, TokenAccount>,
+    pub nft_escrow: AccountInfo<'info>,
    
     #[account(
         init_if_needed,
@@ -108,7 +106,7 @@ pub fn create_nft_campaign_instruction(
     campaign.mint_price = mint_price;
     campaign.commission_percentage = commission_percentage;
     campaign.campaign_details = campaign_details;
-    campaign.active = true;
+    campaign.active = true; 
     campaign.affiliates_count = 0;
     campaign.total_mints = 0;
     campaign.created_at = Clock::get()?.unix_timestamp;
