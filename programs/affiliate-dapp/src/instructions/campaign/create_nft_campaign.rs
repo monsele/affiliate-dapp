@@ -1,11 +1,8 @@
-
-//use anchor_lang::prelude::*;
-use {
-    anchor_lang::prelude::*,
-    anchor_spl::{ token::{transfer, Transfer}, token_interface::{spl_token_2022::ID as TOKEN_2022_PROGRAM_ID, Mint, TokenAccount, TokenInterface}}
+use anchor_lang::{prelude::*, solana_program::program_option::COption};
+use anchor_spl::{
+    associated_token::AssociatedToken, token_2022::ID, token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked}
 };
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_lang::solana_program::program_option::COption;
+
 use crate::state::*;
 
 #[derive(Accounts)]
@@ -48,7 +45,7 @@ pub struct CreateNFTCampaign<'info> {
         bump,
         
     )]
-    pub nft_escrow: AccountInfo<'info>,
+    pub nft_escrow: UncheckedAccount<'info>,
    
     #[account(
         init_if_needed,
@@ -57,7 +54,7 @@ pub struct CreateNFTCampaign<'info> {
         associated_token::authority = nft_escrow, // Authority is the PDA!
     )]
     pub escrow_pda_nft_token_account: InterfaceAccount<'info, TokenAccount>,
-    #[account(address = TOKEN_2022_PROGRAM_ID)]
+    #[account(address = ID)]
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -119,13 +116,17 @@ pub fn create_nft_campaign_instruction(
         created_at: campaign.created_at,
     });
     //transfer the NFT to the escrow account
-    let transfer_instruction  = Transfer {
-        from: ctx.accounts.project_token_account.to_account_info().clone(),
-        to: ctx.accounts.escrow_pda_nft_token_account.to_account_info().clone(),
-        authority: ctx.accounts.company.to_account_info().clone(),
+
+    let transfer_accounts = TransferChecked {
+        from: ctx.accounts.project_token_account.to_account_info(),
+        mint: ctx.accounts.nft_mint.to_account_info(),
+        to: ctx.accounts.escrow_pda_nft_token_account.to_account_info(),
+        authority: ctx.accounts.company.to_account_info()
     };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_ctx = CpiContext::new(cpi_program, transfer_instruction );
-    transfer(cpi_ctx, 1)?;
+    // let cpi_program = ctx.accounts.token_program.to_account_info();
+    // let cpi_ctx = CpiContext::new(cpi_program, transfer_instruction );
+    let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), transfer_accounts);
+    transfer_checked(cpi_ctx,1,ctx.accounts.nft_mint.decimals)?;
+   
     Ok(())
 }
