@@ -2,8 +2,9 @@ use anchor_lang::prelude::*;
 mod state;
 mod instructions;
 use instructions::*;
+mod error;
 //use instructions::{create_nft_campaign_instruction};
-declare_id!("57HuJeX7Qm7Vv1zYLP3WtYCAbEqMBEo5AD1d2jaEKNxK");
+declare_id!("Fqem6roKkvhpFtHuHDTXDzcGD9zpEgH7zVCi3Sf4hUFb");
 
 #[program]
 
@@ -20,15 +21,14 @@ pub mod affiliate_dapp {
     }
     pub fn create_affiliate_link(
         ctx: Context<CreateAffiliateLink>,
-        campaign_id: Pubkey,
         campaign_name: String,
     ) -> Result<()> {
-        create_affiliate_link_instruction(ctx, campaign_id,campaign_name)
+        create_affiliate_link_instruction(ctx,campaign_name)
     }
     pub fn process_affiliate_mint(
-        ctx: Context<ProcessAffiliateMint>,
+        ctx: Context<ProcessAffiliateMint>,campaign_name: String, influencer: Pubkey
     ) -> Result<()> {
-        process_affiliate_mint_instruction(ctx)
+        process_affiliate_mint_instruction(ctx,campaign_name, influencer)
     }
 
    
